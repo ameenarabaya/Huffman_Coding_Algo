@@ -1,109 +1,70 @@
-#include <bits/stdc++.h>
+#include <iostream>
+#include <queue>
+#include <vector>
+#include <string>
 using namespace std;
 
-// A Huffman tree node
-struct MinHeapNode {
-
-	// One of the input characters
-	char data;
-
-	// Frequency of the character
-	unsigned freq;
-
-	// Left and right child
-	MinHeapNode *left, *right;
-
-	MinHeapNode(char data, unsigned freq)
-
-	{
-
-		left = right = NULL;
-		this->data = data;
-		this->freq = freq;
-	}
+struct Node {
+    char data;
+    unsigned freq;
+    Node *left, *right;
+    Node(char data, unsigned freq) {
+        left = right = nullptr;
+        this->data = data;
+        this->freq = freq;
+    }
 };
 
-// For comparison of
-// two heap nodes (needed in min heap)
 struct compare {
-
-	bool operator()(MinHeapNode* l, MinHeapNode* r)
-
-	{
-		return (l->freq > r->freq);
-	}
+    bool operator()(Node* l, Node* r) {
+        return (l->freq > r->freq);
+    }
 };
 
-// Prints huffman codes from
-// the root of Huffman Tree.
-void printCodes(struct MinHeapNode* root, string str)
-{
-
-	if (!root)
-		return;
-
-	if (root->data != '$')
-		cout << root->data << ": " << str << "\n";
-
-	printCodes(root->left, str + "0");
-	printCodes(root->right, str + "1");
+void printCodes(struct Node* root, string str) {
+    if (!root)
+        return;
+    if (root->data != '$')
+        cout << root->data << ": " << str << "\n";
+    printCodes(root->left, str + "0");
+    printCodes(root->right, str + "1");
 }
 
-// The main function that builds a Huffman Tree and
-// print codes by traversing the built Huffman Tree
-void HuffmanCodes(char data[], int freq[], int size)
-{
-	struct MinHeapNode *left, *right, *top;
+void buildHuffmanTree(string text) {
+    if (text.empty())
+        return;
 
-	// Create a min heap & inserts all characters of data[]
-	priority_queue<MinHeapNode*, vector<MinHeapNode*>,
-				compare>
-		minHeap;
+    // Count frequencies of characters in the text
+    vector<int> freq(256, 0);
+    for (char c : text) {
+        freq[c]++;
+    }
 
-	for (int i = 0; i < size; ++i)
-		minHeap.push(new MinHeapNode(data[i], freq[i]));
+    priority_queue<Node*, vector<Node*>, compare> minHeap;
+    for (int i = 0; i < 256; ++i) {
+        if (freq[i] != 0) {
+            minHeap.push(new Node((char)i, freq[i]));
+        }
+    }
 
-	// Iterate while size of heap doesn't become 1
-	while (minHeap.size() != 1) {
+    while (minHeap.size() != 1) {
+        Node* left = minHeap.top();
+        minHeap.pop();
+        Node* right = minHeap.top();
+        minHeap.pop();
 
-		// Extract the two minimum
-		// freq items from min heap
-		left = minHeap.top();
-		minHeap.pop();
+        Node* top = new Node('$', left->freq + right->freq);
+        top->left = left;
+        top->right = right;
+        minHeap.push(top);
+    }
 
-		right = minHeap.top();
-		minHeap.pop();
-
-		// Create a new internal node with
-		// frequency equal to the sum of the
-		// two nodes frequencies. Make the
-		// two extracted node as left and right children
-		// of this new node. Add this node
-		// to the min heap '$' is a special value
-		// for internal nodes, not used
-		top = new MinHeapNode('$',left->freq + right->freq);
-		top->left = left;
-		top->right = right;
-
-		minHeap.push(top);
-	}
-
-	// Print Huffman codes using
-	// the Huffman tree built above
-	printCodes(minHeap.top(), "");
+    cout << "Huffman Codes are:\n";
+    printCodes(minHeap.top(), "");
 }
 
-// Driver Code
-int main()
-{
-
-	char arr[] = { 'W', 'l', 'm', 'u', 'p', 'j' ,'c','t','r','e',' ','o'};
-	int freq[] = { 1, 1, 1, 1, 1, 1,2,2,2,3,3,4};
-
-	int size = sizeof(arr) / sizeof(arr[0]);
-	HuffmanCodes(arr, freq, size);
-
-	return 0;
+int main() {
+    string text = "Welcome to our project";
+    buildHuffmanTree(text);
+    return 0;
 }
-
-// This code is contributed by Aditya Goel
